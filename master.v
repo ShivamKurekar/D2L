@@ -108,6 +108,11 @@ module master (
 
     // state trans
     always @(*) begin
+        
+        next_state = state;
+        DL0 = 1'b0;
+        DL1 = 1'b0;
+        CS  = 1'b1;
 
         case(state)
 
@@ -133,8 +138,8 @@ module master (
 
             DATA_TX: begin
                 // Data is passed from LSB to MSB
-                DL0 = data_in [3 - data_cycle];
-                DL1 = data_in [7 - data_cycle];
+                DL0 = data_in [3 - data_cycle]; //Lower half bits
+                DL1 = data_in [7 - data_cycle]; //Upper half bits
                 if(data_cycle == 2'd3 && count == 3'd7)
                     next_state = END_TX;
                 else
