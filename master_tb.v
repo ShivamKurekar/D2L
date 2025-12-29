@@ -6,9 +6,10 @@ module tb_master;
     reg  clk;
     reg  rstn;
     reg  out_en;
+    reg [70:0] data;
     wire sclk;
-    wire DL0;
-    wire DL1;
+    wire DataLine0;
+    wire DataLine1;
     wire CS;
 
     // Instantiate DUT
@@ -16,9 +17,10 @@ module tb_master;
         .clk   (clk),
         .rstn  (rstn),
         .out_en(out_en),
+        .data(data),
         .sclk  (sclk),
-        .DL0   (DL0),
-        .DL1   (DL1),
+        .DataLine0   (DataLine0),
+        .DataLine1   (DataLine1),
         .CS    (CS)
     );
 
@@ -32,6 +34,16 @@ module tb_master;
     // Stimulus
     // -------------------------------------------------
     initial begin
+
+        // data = {7'd8, 56'd95, 8'b0101_1010};
+        // data = {7'd16, 48'd0, 16'b1010_1100_0110_1001};
+        // data = {7'd24, 40'd0, 24'b11001010_01101100_10101010};
+        // data = {7'd32, 32'd0, 32'hA5C3_7F2E};
+        // data = {7'd48, 16'd0, 48'h1234_5678_ABCD};
+        // data = {7'd64, 64'hFEDC_BA98_7654_3210};
+
+
+
         // Init
         rstn   = 1'b0;
         out_en = 1'b0;
@@ -44,27 +56,8 @@ module tb_master;
         out_en = 1'b1;
         #20;
         out_en = 1'b0;
-        #500;
-
-        
-
-        // // Wait few clocks
-        // #40;
-
-        // // Trigger transmission
-        // out_en = 1'b1;
-        // #10;
-        // out_en = 1'b0;
-
-        // // Let transaction complete
-        // #500;
-
-        // // Trigger again
-        // out_en = 1'b1;
-        // #10;
-        // out_en = 1'b0;
-
-        // #500;
+        #4000;
+        // if (CS == 1)
         $finish;
     end
 
@@ -73,10 +66,10 @@ module tb_master;
     // -------------------------------------------------
     initial begin
         $display("Time\tCS\tSCLK\tDL0\tDL1\tSTATE");
-        $monitor("%0t\t%b\t%b\t%b\t%b\t%0d",
-                 $time, CS, sclk, DL0, DL1, dut.state);
     end
-
+    always @(posedge sclk)
+        $display("%0t\t%b\t%b\t%b\t%b\t%0d",
+                 $time, CS, sclk, DataLine0, DataLine1, dut.state);
     // -------------------------------------------------
     // Dump waves (for GTKWave / Vivado)
     // -------------------------------------------------
