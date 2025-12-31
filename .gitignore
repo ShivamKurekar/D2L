@@ -4,6 +4,7 @@
 .lock
 
 outflow
+copy_sim
 
 work_*
 

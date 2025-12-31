@@ -1,11 +1,11 @@
 `timescale 1ns/1ps
 
-module tb_slave;
+module tb_slave_64;
 
     // -------------------------------------------------
     // Parameters
     // -------------------------------------------------
-    localparam DATA_WIDTH = 8;
+    localparam DATA_WIDTH = 64;
 
     // -------------------------------------------------
     // DUT signals
@@ -16,25 +16,35 @@ module tb_slave;
     reg  InLine1;
     reg  CS;
 
+    wire done;
+    wire [DATA_WIDTH-1:0] DATA_OUT;
+
     // -------------------------------------------------
     // Instantiate DUT
     // -------------------------------------------------
     slave #(.DATA_WIDTH(DATA_WIDTH)) dut (
-        .sclk    (sclk),
-        .rstn    (rstn),
-        .InLine0 (InLine0),
-        .InLine1 (InLine1),
-        .CS      (CS)
+        .sclk     (sclk),
+        .rstn     (rstn),
+        .InLine0  (InLine0),
+        .InLine1  (InLine1),
+        .CS       (CS),
+        .done     (done),
+        .DATA_OUT (DATA_OUT)
     );
 
     // -------------------------------------------------
-    // Clock generation (25 MHz for clarity)
+    // Clock generation (25 MHz)
     // -------------------------------------------------
     initial sclk = 1'b0;
-    always #40 sclk = ~sclk;   // 40 ns period
+    always #20 sclk = ~sclk;   // 40 ns period
 
     // -------------------------------------------------
-    // Task to send one dual-bit cycle
+    // Test data
+    // -------------------------------------------------
+    reg [63:0] tx_data;
+
+    // -------------------------------------------------
+    // Task: send one 2-bit pair (LSB-first)
     // -------------------------------------------------
     task send_pair(input b1, input b0);
     begin
@@ -47,6 +57,8 @@ module tb_slave;
     // -------------------------------------------------
     // Stimulus
     // -------------------------------------------------
+    integer i;
+
     initial begin
         // Init
         rstn     = 1'b0;
@@ -54,51 +66,62 @@ module tb_slave;
         InLine0  = 1'b0;
         InLine1  = 1'b0;
 
+        tx_data  = 64'hA5A5_1234_5678_9ABC;
+
         // Reset
         #50;
         rstn = 1'b1;
 
-        // -------------------------------------------------
-        // Send 8-bit data: 1010_0101
-        // Bit order (LSB first):
-        // Cycle 1: bit1 bit0 = 0 1
-        // Cycle 2: bit3 bit2 = 0 1
-        // Cycle 3: bit5 bit4 = 1 0
-        // Cycle 4: bit7 bit6 = 1 0
-        // -------------------------------------------------
-
+        // Start transfer
         @(posedge sclk);
-        CS = 1'b0;  // select slave
+        CS = 1'b0;
 
-        send_pair(1'b1, 1'b0); // cycle 4
-        send_pair(1'b0, 1'b1); // cycle 3
-        send_pair(1'b1, 1'b0); // cycle 2
-        send_pair(1'b0, 1'b1); // cycle 1
+        // -------------------------------------------------
+        // Send 64 bits = 32 dual-bit cycles
+        // LSB first
+        // -------------------------------------------------
+        for (i = DATA_WIDTH-1; i >= 1; i = i - 2) begin
+            send_pair(tx_data[i], tx_data[i-1]);
+        end
 
+
+        // End transfer
         @(posedge sclk);
-        CS = 1'b1;  // end transfer
+        CS = 1'b1;
 
-        // Wait and finish
-        #200;
-        $display("Received data = %b (expected 10011001)", dut.data);
+        // Wait for DONE
+        wait (done);
+
+        // -------------------------------------------------
+        // Check result
+        // -------------------------------------------------
+        $display("TX DATA = %b", tx_data);
+        $display("RX DATA = %b", DATA_OUT);
+
+        if (DATA_OUT === tx_data)
+            $display("RESULT : PASS");
+        else
+            $display("RESULT : FAIL");
+
+        #100;
         $finish;
     end
 
     // -------------------------------------------------
-    // Monitor
+    // Debug monitor
     // -------------------------------------------------
     always @(negedge sclk) begin
         if (!CS)
-            $display("t=%0t InLine1=%b InLine0=%b data=%b state=%0d",
+            $display("t=%0t  In1=%b In0=%b  partial_data=%h  state=%0d",
                      $time, InLine1, InLine0, dut.data, dut.state);
     end
 
     // -------------------------------------------------
-    // Dump waveform
+    // Waveform dump
     // -------------------------------------------------
     initial begin
-        $dumpfile("slave_tb.vcd");
-        $dumpvars(0, tb_slave);
+        $dumpfile("slave_64_tb.vcd");
+        $dumpvars(0, tb_slave_64);
     end
 
 endmodule
