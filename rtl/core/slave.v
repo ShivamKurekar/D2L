@@ -71,7 +71,7 @@ module slave #(parameter DATA_WIDTH = 64)(
                 end
 
                 END_RX: begin
-                    done <= 1;
+                    done <= 0;
                     state <= IDLE;
                 end
 
