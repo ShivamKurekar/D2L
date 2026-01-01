@@ -14,6 +14,13 @@ module tb_D2L;
     wire [63:0] DATA_OUT;
 
     // -------------------------------------------------
+    // File handles
+    // -------------------------------------------------
+    integer f_in;
+    integer f_out;
+    integer status;
+
+    // -------------------------------------------------
     // Instantiate DUT
     // -------------------------------------------------
     D2L dut (
@@ -43,7 +50,7 @@ module tb_D2L;
     task TX;
     input [63:0] tx_DATA;
     begin
-        // Init
+            // Init
         rstn    = 1'b0;
         out_en = 1'b0;
         DATA_IN = 64'd0;
@@ -81,6 +88,8 @@ module tb_D2L;
         else
             $display("RESULT  : FAIL");
 
+        $fwrite(f_out, "%h\n", DATA_OUT);
+        
         $display("--------------------------------------------------");
 
         #100;
@@ -89,6 +98,7 @@ module tb_D2L;
     end
     endtask
     initial begin
+        /*
         TX(64'h9F3A_7C21_BD84_5E62);
         TX(64'h14E9_A6D0_3B7C_8F51);
         TX(64'hC8D2_4F91_0A6B_E357);
@@ -104,9 +114,33 @@ module tb_D2L;
         TX(64'hD37A_0E5F_149C_B826);
         TX(64'h6E90_C41B_FD75_2A38);
         TX(64'h83B5_6A9F_0D24_EC71);
-        TX(64'hF2C1_7D48_9A05_B36E);        
+        TX(64'hF2C1_7D48_9A05_B36E);
+        */
+        
+        f_in  = $fopen("../sim/input_data.txt",  "r");
+        f_out = $fopen("../sim/output_data.txt", "w");
 
-        $finish;
+        if (f_in == 0 || f_out == 0) begin
+            $display("ERROR: File open failed");
+            $finish;
+        end
+
+        while (!$feof(f_in)) begin
+            status = $fscanf(f_in, "%h\n", tx_data);
+            if (status == 1)
+                TX(tx_data);
+        end
+
+        // Close files
+        $fclose(f_in);
+        $fclose(f_out);
+
+        $display("============================================");
+        $display("FILE-BASED D2L TEST COMPLETED");
+        $display("============================================");
+
+        #100;
+        $finish;   
     end
 
     // -------------------------------------------------
