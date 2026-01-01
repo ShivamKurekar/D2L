@@ -3,7 +3,7 @@ module D2L (
     input        rstn,
 
     input        out_en,          // one-cycle start pulse
-    input [70:0] DATA_IN,         // {width[6:0], payload[63:0]}
+    input [63:0] DATA_IN,         // {width[6:0], payload[63:0]}
 
     output reg        DONE,        // one-cycle completion pulse
     output     [63:0] DATA_OUT

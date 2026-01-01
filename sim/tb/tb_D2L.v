@@ -43,7 +43,7 @@ module tb_D2L;
     task TX;
     input [63:0] tx_DATA;
     begin
-            // Init
+        // Init
         rstn    = 1'b0;
         out_en = 1'b0;
         DATA_IN = 64'd0;
