@@ -66,7 +66,7 @@ module master (
                 end
                 
                 END_TX: begin
-                    if (count < 3'd3)
+                    if (count < 3'd3 || count == 3'd7)
                         slave_clk <= 1'b1;
                     else
                         slave_clk <= 1'b0;

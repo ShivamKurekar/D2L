@@ -52,14 +52,13 @@ module slave #(parameter DATA_WIDTH = 64)(
                 end
 
                 DATA_RX: begin
-                    // done <= 0;
                     DL0 <= InLine0;
                     DL1 <= InLine1;
                     // data <= {data[DATA_WIDTH - 2:0], InLine1, InLine0};
                     data <= {data[DATA_WIDTH - 2:0], DL1, DL0};
                     // data <= {DL1, DL0, data[DATA_WIDTH - 1: 2]};
                     // data <= {InLine0, InLine1, data[DATA_WIDTH-1:2]};
-                        done <= 0;
+                    done <= 0;
 
                     // Then decide whether this was the last cycle
                     if (data_cycle == DATA_CYCLES - 1) begin

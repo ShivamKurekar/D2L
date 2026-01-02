@@ -5,7 +5,7 @@ module D2L (
     input        out_en,          // one-cycle start pulse
     input [63:0] DATA_IN,         // {width[6:0], payload[63:0]}
 
-    output reg        DONE,        // one-cycle completion pulse
+    output       DONE,        // one-cycle completion pulse
     output     [63:0] DATA_OUT
 );
 
@@ -39,17 +39,17 @@ module D2L (
         .InLine0   (DL0),
         .InLine1   (DL1),
         .CS        (CS),
-        .done      (slave_done),
+        .done      (DONE),
         .DATA_OUT  (slave_data)
     );
 
     /* ---------------- DONE pulse generation ---------------- */
-    always @(posedge clk or negedge rstn) begin
-        if (!rstn)
-            DONE <= 1'b0;
-        else
-            DONE <= slave_done;   // one-cycle pulse
-    end
+    // always @(posedge clk or negedge rstn) begin
+    //     if (!rstn)
+    //         DONE <= 1'b0;
+    //     else
+    //         DONE <= slave_done;   // one-cycle pulse
+    // end
 
     assign DATA_OUT = slave_data;
 

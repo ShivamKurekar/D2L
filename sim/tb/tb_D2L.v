@@ -50,16 +50,16 @@ module tb_D2L;
     task TX;
     input [63:0] tx_DATA;
     begin
-            // Init
+
         rstn    = 1'b0;
         out_en = 1'b0;
         DATA_IN = 64'd0;
-
-        tx_data = tx_DATA;
-
         // Apply reset
         #100;
         rstn = 1'b1;
+        
+        tx_data = tx_DATA;
+
 
         // -------------------------------------------------
         // Launch transaction
@@ -90,6 +90,7 @@ module tb_D2L;
 
         $fwrite(f_out, "%h\n", DATA_OUT);
         
+        wait (!DONE);
         $display("--------------------------------------------------");
 
         #100;
@@ -98,6 +99,13 @@ module tb_D2L;
     end
     endtask
     initial begin
+        // Init
+        rstn    = 1'b0;
+        out_en = 1'b0;
+        DATA_IN = 64'd0;
+        // Apply reset
+        #100;
+        rstn = 1'b1;
         /*
         TX(64'h9F3A_7C21_BD84_5E62);
         TX(64'h14E9_A6D0_3B7C_8F51);
